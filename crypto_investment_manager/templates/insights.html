@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Market Insights – Crypto Investment Manager{% endblock %}
+{% block page_title %}Market Insights{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <p class="text-muted mb-0">Live Market Sentiment and Trending Cryptocurrencies</p>
+    <button class="btn btn-accent btn-sm" onclick="fetchInsights()">
+        <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+    </button>
+</div>
+
+<div id="insightsLoading" class="text-center py-5">
+    <div class="spinner-border text-accent mb-3" role="status"></div>
+    <p class="text-muted mt-3">Fetching insights...</p>
+</div>
+
+<div id="insightsError" class="alert alert-danger" style="display:none;">
+    <i class="bi bi-exclamation-triangle me-2"></i><span id="insightsErrorMsg"></span>
+</div>
+
+<div id="insightsGrid" style="display:none;">
+    <div class="row g-4 mb-4">
+        <!-- Fear & Greed Index -->
+        <div class="col-lg-5">
+            <div class="card glass-card h-100 p-4 text-center">
+                <h5 class="fw-bold mb-3"><i class="bi bi-speedometer2 me-2"></i>Fear & Greed Index</h5>
+                <h1 id="fgValue" class="display-3 fw-bold my-4">--</h1>
+                <h4 id="fgClassification" class="fw-semibold">--</h4>
+                <p class="text-muted small mt-2">Scale from 0 (Extreme Fear) to 100 (Extreme Greed)<br>Powered by Alternative.me</p>
+            </div>
+        </div>
+        <!-- Trending Coins -->
+        <div class="col-lg-7">
+            <div class="card glass-card h-100 p-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-fire text-danger me-2"></i>Trending Cryptocurrencies</h5>
+                <p class="text-muted small">Top surveyed coins in the last 24h by CoinGecko.</p>
+                <div class="table-responsive mt-2">
+                    <table class="table align-middle text-white dashboard-table">
+                        <thead>
+                            <tr class="text-muted">
+                                <th>#</th>
+                                <th>Coin</th>
+                                <th>Symbol</th>
+                                <th class="text-end">Rank</th>
+                                <th class="text-end">Price (BTC)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trendingTableBody">
+                            <!-- Trending coins will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function fetchInsights() {
+    document.getElementById("insightsLoading").style.display = "block";
+    document.getElementById("insightsError").style.display = "none";
+    document.getElementById("insightsGrid").style.display = "none";
+
+    fetch("/api/insights")
+        .then(r => r.json())
+        .then(res => {
+            document.getElementById("insightsLoading").style.display = "none";
+            if (!res.success) {
+                document.getElementById("insightsError").style.display = "block";
+                document.getElementById("insightsErrorMsg").textContent = res.error || "Failed to fetch insights.";
+                return;
+            }
+
+            document.getElementById("insightsGrid").style.display = "block";
+            
+            // Render Fear & Greed
+            const fg = res.data.fear_greed;
+            const fgValueElem = document.getElementById("fgValue");
+            const fgClassElem = document.getElementById("fgClassification");
+            
+            fgValueElem.textContent = fg.value;
+            fgClassElem.textContent = fg.classification;
+            
+            // Color code based on value
+            const val = parseInt(fg.value);
+            if(val <= 25) {
+                fgValueElem.style.color = "#ef4444"; // Extreme Fear (Red)
+                fgClassElem.style.color = "#ef4444";
+            } else if (val <= 45) {
+                fgValueElem.style.color = "#f97316"; // Fear (Orange)
+                fgClassElem.style.color = "#f97316";
+            } else if (val <= 55) {
+                fgValueElem.style.color = "#eab308"; // Neutral (Yellow)
+                fgClassElem.style.color = "#eab308";
+            } else if (val <= 75) {
+                fgValueElem.style.color = "#84cc16"; // Greed (Light Green)
+                fgClassElem.style.color = "#84cc16";
+            } else {
+                fgValueElem.style.color = "#22c55e"; // Extreme Greed (Green)
+                fgClassElem.style.color = "#22c55e";
+            }
+
+            // Render Trending Coins
+            const tbody = document.getElementById("trendingTableBody");
+            tbody.innerHTML = "";
+            const trending = res.data.trending || [];
+            if(trending.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No trending data available</td></tr>';
+            } else {
+                trending.forEach((coin, idx) => {
+                    const price = parseFloat(coin.price_btc).toFixed(10);
+                    const rank = coin.market_cap_rank || '-';
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${idx + 1}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <img src="${coin.thumb}" alt="${coin.name}" width="24" height="24" class="rounded-circle me-2">
+                                    <span class="fw-semibold">${coin.name}</span>
+                                </div>
+                            </td>
+                            <td><span class="badge bg-secondary">${coin.symbol}</span></td>
+                            <td class="text-end">${rank}</td>
+                            <td class="text-end font-monospace">${price} ₿</td>
+                        </tr>
+                    `;
+                });
+            }
+        })
+        .catch(err => {
+            document.getElementById("insightsLoading").style.display = "none";
+            document.getElementById("insightsError").style.display = "block";
+            document.getElementById("insightsErrorMsg").textContent = "Network error: " + err.message;
+        });
+}
+
+document.addEventListener("DOMContentLoaded", fetchInsights);
+</script>
+{% endblock %}

@@ -133,10 +133,10 @@ def simulator():
     return render_template("simulator.html", best_mix=best_mix)
 
 
-@dashboard_bp.route("/news")
+@dashboard_bp.route("/insights")
 @login_required
-def news():
-    return render_template("news.html")
+def insights():
+    return render_template("insights.html")
 
 
 @dashboard_bp.route("/settings", methods=["GET", "POST"])
@@ -248,28 +248,36 @@ def live_prices():
         return jsonify(success=False, error=str(e), data=[])
 
 
-# ── API: crypto news ─────────────────────────────────────────────────
-@dashboard_bp.route("/api/news")
+# ── API: market insights ─────────────────────────────────────────────
+@dashboard_bp.route("/api/insights")
 @login_required
-def crypto_news():
+def market_insights():
     try:
-        resp = http_requests.get(
-            "https://min-api.cryptocompare.com/data/v2/news/",
-            params={"lang": "EN", "sortOrder": "popular"},
-            timeout=15,
-        )
-        resp.raise_for_status()
-        articles = resp.json().get("Data", [])[:20]
-        news_list = []
-        for a in articles:
-            news_list.append({
-                "title": a.get("title", ""),
-                "url": a.get("url", ""),
-                "source": a.get("source_info", {}).get("name", a.get("source", "")),
-                "body": (a.get("body", "")[:200] + "...") if len(a.get("body", "")) > 200 else a.get("body", ""),
-                "image": a.get("imageurl", ""),
-                "published": a.get("published_on", 0),
+        fng_resp = http_requests.get("https://api.alternative.me/fng/?limit=1", timeout=10)
+        fng_data = fng_resp.json().get("data", [{}])[0]
+        
+        trending_resp = http_requests.get("https://api.coingecko.com/api/v3/search/trending", timeout=10)
+        trending_coins = trending_resp.json().get("coins", [])[:10]
+        
+        coins_data = []
+        for item in trending_coins:
+            coin = item.get("item", {})
+            coins_data.append({
+                "name": coin.get("name"),
+                "symbol": coin.get("symbol"),
+                "thumb": coin.get("thumb"),
+                "market_cap_rank": coin.get("market_cap_rank"),
+                "price_btc": coin.get("price_btc")
             })
-        return jsonify(success=True, data=news_list)
+
+        data = {
+            "fear_greed": {
+                "value": fng_data.get("value", 50),
+                "classification": fng_data.get("value_classification", "Neutral"),
+                "timestamp": fng_data.get("timestamp")
+            },
+            "trending": coins_data
+        }
+        return jsonify(success=True, data=data)
     except Exception as e:
-        return jsonify(success=False, error=str(e), data=[])
+        return jsonify(success=False, error=str(e), data={})
