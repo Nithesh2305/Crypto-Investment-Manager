@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block title %}Portfolio Simulator – Crypto Investment Manager{% endblock %}
+{% block page_title %}Portfolio Simulator{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card glass-card">
+            <div class="card-header">
+                <i class="bi bi-sliders me-2"></i>Simulate Investment
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-4">
+                    Enter an investment amount. The simulator uses the #1 ranked mix to calculate
+                    allocation across BTC, ETH, and BNB.
+                </p>
+
+                <div class="mb-4">
+                    <label for="investmentAmount" class="form-label fw-bold">Investment Amount (USD)</label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text">$</span>
+                        <input type="number" class="form-control" id="investmentAmount"
+                               value="5000" min="1" step="100" placeholder="5000">
+                    </div>
+                </div>
+
+                <button class="btn btn-accent w-100 py-2" onclick="simulate()">
+                    <i class="bi bi-calculator-fill me-1"></i> Calculate Allocation
+                </button>
+
+                <!-- Best mix info -->
+                <div class="mt-4 p-3 rounded" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);">
+                    <div class="small text-muted mb-2">Best Portfolio Mix (#1)</div>
+                    {% for name, pct in best_mix.items() %}
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>{{ name }}</span>
+                        <span class="fw-bold text-accent">{{ pct }}%</span>
+                    </div>
+                    {% endfor %}
+                    {% if not best_mix %}
+                    <p class="text-muted mb-0">No mix data available. Run analysis first.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <!-- Allocation Results -->
+        <div class="card glass-card mb-4" id="resultsCard" style="display:none;">
+            <div class="card-header">
+                <i class="bi bi-wallet2 me-2"></i>Allocation Results
+            </div>
+            <div class="card-body">
+                <div class="row g-3 mb-4" id="allocationCards"></div>
+
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0">
+                        <thead>
+                            <tr><th>Cryptocurrency</th><th class="text-end">Allocation %</th><th class="text-end">Amount (USD)</th></tr>
+                        </thead>
+                        <tbody id="allocationTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pie Chart -->
+        <div class="card glass-card mb-4" id="pieCard" style="display:none;">
+            <div class="card-header">
+                <i class="bi bi-pie-chart-fill me-2"></i>Portfolio Allocation
+            </div>
+            <div class="card-body d-flex justify-content-center">
+                <canvas id="simPie" height="280"></canvas>
+            </div>
+        </div>
+
+        <!-- Growth Projection -->
+        <div class="card glass-card" id="growthCard" style="display:none;">
+            <div class="card-header">
+                <i class="bi bi-graph-up-arrow me-2"></i>Predicted Portfolio Growth (30-day)
+            </div>
+            <div class="card-body">
+                <canvas id="growthChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const bestMix = {{ best_mix | tojson }};
+const COLORS = ["#f0b90b", "#627eea", "#f3ba2f", "#e84142", "#26a17b"];
+let pieChart = null, growthChart = null;
+
+function simulate() {
+    const amount = parseFloat(document.getElementById("investmentAmount").value);
+    if (!amount || amount <= 0 || Object.keys(bestMix).length === 0) return;
+
+    const entries = Object.entries(bestMix).filter(([, p]) => p > 0);
+    const total = entries.reduce((s, [, p]) => s + p, 0);
+
+    // Cards
+    const cardsDiv = document.getElementById("allocationCards");
+    cardsDiv.innerHTML = "";
+    entries.forEach(([name, pct], i) => {
+        const usd = (amount * pct / total).toFixed(2);
+        cardsDiv.innerHTML += `
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background:${COLORS[i]}22;color:${COLORS[i]};">
+                        <i class="bi bi-currency-bitcoin"></i>
+                    </div>
+                    <div>
+                        <div class="stat-label">${name}</div>
+                        <div class="stat-value">$${parseFloat(usd).toLocaleString()}</div>
+                    </div>
+                </div>
+            </div>`;
+    });
+
+    // Table
+    const tbody = document.getElementById("allocationTable");
+    tbody.innerHTML = "";
+    entries.forEach(([name, pct]) => {
+        const usd = (amount * pct / total).toFixed(2);
+        tbody.innerHTML += `<tr><td>${name}</td><td class="text-end">${pct}%</td><td class="text-end fw-bold">$${parseFloat(usd).toLocaleString()}</td></tr>`;
+    });
+    tbody.innerHTML += `<tr class="table-active"><td><strong>Total</strong></td><td></td><td class="text-end fw-bold">$${amount.toLocaleString()}</td></tr>`;
+
+    document.getElementById("resultsCard").style.display = "block";
+
+    // Pie
+    if (pieChart) pieChart.destroy();
+    pieChart = new Chart(document.getElementById("simPie"), {
+        type: "doughnut",
+        data: {
+            labels: entries.map(([n]) => n),
+            datasets: [{ data: entries.map(([, p]) => p), backgroundColor: COLORS, borderWidth: 0 }]
+        },
+        options: { plugins: { legend: { position: "bottom", labels: { color: "#ccc", padding: 16 } } } }
+    });
+    document.getElementById("pieCard").style.display = "block";
+
+    // Growth projection (simple 30-day)
+    if (growthChart) growthChart.destroy();
+    const days = Array.from({length: 31}, (_, i) => "Day " + i);
+    const avgGrowthRate = 0.002; // ~0.2% daily avg
+    const values = days.map((_, i) => (amount * Math.pow(1 + avgGrowthRate, i)).toFixed(2));
+    growthChart = new Chart(document.getElementById("growthChart"), {
+        type: "line",
+        data: {
+            labels: days,
+            datasets: [{
+                label: "Portfolio Value ($)",
+                data: values,
+                borderColor: "#f0b90b",
+                backgroundColor: "rgba(240,185,11,.1)",
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0
+            }]
+        },
+        options: {
+            scales: {
+                y: { ticks: { color: "#9ca3af", callback: v => "$" + Number(v).toLocaleString() }, grid: { color: "rgba(255,255,255,.06)" } },
+                x: { ticks: { color: "#9ca3af", maxTicksLimit: 7 }, grid: { color: "rgba(255,255,255,.06)" } }
+            },
+            plugins: { legend: { labels: { color: "#ccc" } } }
+        }
+    });
+    document.getElementById("growthCard").style.display = "block";
+}
+</script>
+{% endblock %}

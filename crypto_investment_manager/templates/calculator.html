@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Investment Calculator – Crypto Investment Manager{% endblock %}
+{% block page_title %}Investment Calculator{% endblock %}
+
+{% block content %}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-4">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(245,158,11,.15);color:#fbbf24;">
+                <i class="bi bi-calculator-fill"></i>
+            </div>
+            <div>
+                <div class="stat-label">Total Mixes</div>
+                <div class="stat-value">{{ mix_data|length }}</div>
+            </div>
+        </div>
+    </div>
+    {% if mix_data %}
+    <div class="col-6 col-lg-4">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(16,185,129,.15);color:#34d399;">
+                <i class="bi bi-graph-up-arrow"></i>
+            </div>
+            <div>
+                <div class="stat-label">Best Score</div>
+                <div class="stat-value">{{ "%.4f"|format(mix_data[0].score) }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-4">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(99,102,241,.15);color:#818cf8;">
+                <i class="bi bi-bullseye"></i>
+            </div>
+            <div>
+                <div class="stat-label">Best ETA</div>
+                <div class="stat-value">{{ "%.4f"|format(mix_data[0].weighted_eta) }}</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if mix_data %}
+<div class="row g-3 mb-4">
+    <div class="col-lg-5">
+        <div class="card glass-card h-100">
+            <div class="card-header">
+                <i class="bi bi-pie-chart-fill me-2"></i>#1 Ranked Allocation
+            </div>
+            <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                <canvas id="calcPie" height="300"></canvas>
+                <div class="mt-4 w-100">
+                    <form action="{{ url_for('dashboard.invest') }}" method="POST" class="d-flex w-100">
+                        <input type="number" name="amount" class="form-control me-2 bg-dark text-white border-secondary" placeholder="Amount to invest ($)" required min="1">
+                        <button type="submit" class="btn btn-success px-4" style="background: linear-gradient(135deg, #10b981, #059669); border:none;">
+                            <i class="bi bi-wallet2 me-2"></i>Invest
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card glass-card h-100">
+            <div class="card-header">
+                <i class="bi bi-bar-chart-line-fill me-2"></i>Score & ETA Comparison
+            </div>
+            <div class="card-body">
+                <canvas id="scoreBar" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="card glass-card">
+    <div class="card-header">
+        <i class="bi bi-table me-2"></i>Investment Mix Results
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0">
+                <thead>
+                    <tr>
+                        {% if mix_data %}
+                            {% for key in mix_data[0].keys() %}
+                            <th>{{ key }}</th>
+                            {% endfor %}
+                        {% else %}
+                            <th>No data</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in mix_data %}
+                    <tr class="{% if loop.index == 1 %}table-active{% endif %}">
+                        {% for val in row.values() %}
+                        <td>{{ val }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                    {% if not mix_data %}
+                    <tr><td class="text-center text-muted py-4">No data – run the analysis first.</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if mix_data %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const COLORS = ["#f0b90b","#627eea","#f3ba2f","#e84142","#26a17b"];
+    const topRow = {{ mix_data[0] | tojson }};
+    const mixData = {{ mix_data | tojson }};
+
+    // Pie
+    const pL = [], pV = [];
+    for (const [k, v] of Object.entries(topRow)) {
+        if (k.endsWith("_pct") && v > 0) { pL.push(k.replace("_pct","")); pV.push(v); }
+    }
+    new Chart(document.getElementById("calcPie"), {
+        type: "doughnut",
+        data: { labels: pL, datasets: [{ data: pV, backgroundColor: COLORS, borderWidth: 0 }] },
+        options: { plugins: { legend: { position: "bottom", labels: { color: "#ccc", padding: 16 } } } }
+    });
+
+    // Bar
+    new Chart(document.getElementById("scoreBar"), {
+        type: "bar",
+        data: {
+            labels: mixData.map(r => "Mix " + r.rank),
+            datasets: [
+                { label: "Score", data: mixData.map(r => r.score), backgroundColor: "#f0b90b", borderRadius: 6 },
+                { label: "W. ETA", data: mixData.map(r => r.weighted_eta), backgroundColor: "#627eea", borderRadius: 6 }
+            ]
+        },
+        options: {
+            scales: {
+                y: { ticks: { color: "#aaa" }, grid: { color: "rgba(255,255,255,.06)" } },
+                x: { ticks: { color: "#aaa" }, grid: { color: "rgba(255,255,255,.06)" } }
+            },
+            plugins: { legend: { labels: { color: "#ccc" } } }
+        }
+    });
+});
+</script>
+{% endif %}
+{% endblock %}

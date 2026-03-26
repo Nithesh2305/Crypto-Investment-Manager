@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Settings – Crypto Investment Manager{% endblock %}
+{% block page_title %}Settings{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-6">
+        <!-- Account Info -->
+        <div class="card glass-card mb-4">
+            <div class="card-header">
+                <i class="bi bi-person-circle me-2"></i>Account Information
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="user-avatar-lg me-3">{{ current_user.username[0]|upper }}</div>
+                    <div>
+                        <h5 class="mb-0">{{ current_user.username }}</h5>
+                        <span class="text-muted">{{ current_user.email }}</span>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);">
+                            <div class="small text-muted">Username</div>
+                            <div class="fw-bold">{{ current_user.username }}</div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);">
+                            <div class="small text-muted">Email</div>
+                            <div class="fw-bold">{{ current_user.email }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Email Alert Settings -->
+        <div class="card glass-card">
+            <div class="card-header">
+                <i class="bi bi-bell-fill me-2"></i>Email Alert Preferences
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-4">
+                    Configure which email alerts you'd like to receive when the analysis pipeline runs.
+                </p>
+                <form method="POST" action="{{ url_for('dashboard.settings') }}">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="alert_high_risk" name="alert_high_risk"
+                               {% if current_user.alert_high_risk %}checked{% endif %}>
+                        <label class="form-check-label" for="alert_high_risk">
+                            <i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>
+                            High Risk Alert
+                        </label>
+                        <div class="form-text text-muted">Get notified when any crypto is classified as HIGH risk.</div>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="alert_downward_trend" name="alert_downward_trend"
+                               {% if current_user.alert_downward_trend %}checked{% endif %}>
+                        <label class="form-check-label" for="alert_downward_trend">
+                            <i class="bi bi-arrow-down-circle-fill text-warning me-1"></i>
+                            Downward Trend Alert
+                        </label>
+                        <div class="form-text text-muted">Get notified when any crypto has a DOWNWARD price trend.</div>
+                    </div>
+                    <div class="form-check form-switch mb-4">
+                        <input class="form-check-input" type="checkbox" id="alert_daily_summary" name="alert_daily_summary"
+                               {% if current_user.alert_daily_summary %}checked{% endif %}>
+                        <label class="form-check-label" for="alert_daily_summary">
+                            <i class="bi bi-envelope-fill text-info me-1"></i>
+                            Daily Market Summary
+                        </label>
+                        <div class="form-text text-muted">Receive a daily summary of market conditions.</div>
+                    </div>
+                    <button type="submit" class="btn btn-accent px-4">
+                        <i class="bi bi-check-circle me-1"></i> Save Settings
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <!-- App Info -->
+        <div class="card glass-card mb-4">
+            <div class="card-header">
+                <i class="bi bi-info-circle-fill me-2"></i>Application Info
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="small text-muted">Application</div>
+                    <div class="fw-bold">Crypto Investment Manager</div>
+                </div>
+                <div class="mb-3">
+                    <div class="small text-muted">Version</div>
+                    <div class="fw-bold">2.0.0</div>
+                </div>
+                <div class="mb-3">
+                    <div class="small text-muted">Data Sources</div>
+                    <div class="fw-bold">CoinGecko API, CryptoCompare</div>
+                </div>
+                <div>
+                    <div class="small text-muted">Supported Cryptos</div>
+                    <div class="fw-bold">Bitcoin, Ethereum, Binance Coin</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="card glass-card">
+            <div class="card-header">
+                <i class="bi bi-lightning-fill me-2"></i>Quick Actions
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('analysis.run_analysis') }}" class="btn btn-outline-light text-start">
+                        <i class="bi bi-play-circle-fill me-2 text-accent"></i> Run Analysis Pipeline
+                    </a>
+                    <a href="{{ url_for('analysis.reports') }}" class="btn btn-outline-light text-start">
+                        <i class="bi bi-file-earmark-bar-graph-fill me-2 text-accent"></i> View Reports
+                    </a>
+                    <a href="{{ url_for('dashboard.live_market') }}" class="btn btn-outline-light text-start">
+                        <i class="bi bi-graph-up-arrow me-2 text-accent"></i> Live Market Data
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

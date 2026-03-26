@@ -1,0 +1,4 @@
+crypto_name,first_price,last_price,total_return,average_daily_return,std_daily_return,min_price,max_price,num_days
+Binancecoin,617.89,647.32,0.047634,0.000504,0.027425,553.4,1311.71,365
+Bitcoin,86960.86,71309.26,-0.179984,-0.000277,0.023125,62853.69,124773.51,365
+Ethereum,2009.88,2168.26,0.078799,0.000978,0.039508,1471.36,4829.23,365

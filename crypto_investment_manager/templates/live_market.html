@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Live Market – Crypto Investment Manager{% endblock %}
+{% block page_title %}Live Market{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <p class="text-muted mb-0">Real-time cryptocurrency prices from CoinGecko</p>
+    <button class="btn btn-accent btn-sm" onclick="fetchPrices()">
+        <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+    </button>
+</div>
+
+<!-- Loading -->
+<div id="marketLoading" class="text-center py-5">
+    <div class="loading-spinner"></div>
+    <p class="text-muted mt-3">Fetching live prices...</p>
+</div>
+
+<!-- Error -->
+<div id="marketError" class="alert alert-danger" style="display:none;">
+    <i class="bi bi-exclamation-triangle me-2"></i><span id="marketErrorMsg"></span>
+</div>
+
+<!-- Price Change Chart -->
+<div class="card glass-card mb-4" id="chartSection" style="display:none;">
+    <div class="card-header">
+        <i class="bi bi-bar-chart-fill me-2"></i>24h Price Change (%)
+    </div>
+    <div class="card-body">
+        <canvas id="priceChangeChart" height="200"></canvas>
+    </div>
+</div>
+
+<!-- Market Table -->
+<div class="card glass-card" id="tableSection" style="display:none;">
+    <div class="card-header">
+        <i class="bi bi-table me-2"></i>Live Crypto Prices
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Crypto</th>
+                        <th class="text-end">Current Price</th>
+                        <th class="text-end">24h Change</th>
+                        <th class="text-end">Market Cap</th>
+                        <th class="text-end">Volume</th>
+                    </tr>
+                </thead>
+                <tbody id="priceTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let changeChart = null;
+
+function formatNum(n) {
+    if (n >= 1e9) return "$" + (n / 1e9).toFixed(2) + "B";
+    if (n >= 1e6) return "$" + (n / 1e6).toFixed(2) + "M";
+    return "$" + n.toLocaleString();
+}
+
+function fetchPrices() {
+    document.getElementById("marketLoading").style.display = "block";
+    document.getElementById("marketError").style.display = "none";
+    document.getElementById("chartSection").style.display = "none";
+    document.getElementById("tableSection").style.display = "none";
+
+    fetch("/api/live-prices")
+        .then(r => r.json())
+        .then(res => {
+            document.getElementById("marketLoading").style.display = "none";
+            if (!res.success) {
+                document.getElementById("marketError").style.display = "block";
+                document.getElementById("marketErrorMsg").textContent = res.error || "Failed to fetch prices.";
+                return;
+            }
+
+            const data = res.data;
+            // Table
+            const tbody = document.getElementById("priceTableBody");
+            tbody.innerHTML = "";
+            data.forEach((c, i) => {
+                const changeClass = c.change_24h >= 0 ? "text-success" : "text-danger";
+                const changeIcon = c.change_24h >= 0 ? "bi-arrow-up-short" : "bi-arrow-down-short";
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>
+                            <img src="${c.image}" alt="" width="24" height="24" class="me-2 rounded-circle">
+                            <strong>${c.name}</strong> <span class="text-muted">${c.symbol}</span>
+                        </td>
+                        <td class="text-end fw-bold">$${c.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                        <td class="text-end ${changeClass}">
+                            <i class="bi ${changeIcon}"></i>${c.change_24h}%
+                        </td>
+                        <td class="text-end">${formatNum(c.market_cap)}</td>
+                        <td class="text-end">${formatNum(c.volume)}</td>
+                    </tr>`;
+            });
+            document.getElementById("tableSection").style.display = "block";
+
+            // Chart
+            const labels = data.map(c => c.symbol);
+            const changes = data.map(c => c.change_24h);
+            const colors = changes.map(v => v >= 0 ? "#10b981" : "#ef4444");
+
+            if (changeChart) changeChart.destroy();
+            changeChart = new Chart(document.getElementById("priceChangeChart"), {
+                type: "bar",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "24h Change %",
+                        data: changes,
+                        backgroundColor: colors,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { ticks: { color: "#9ca3af" }, grid: { color: "rgba(255,255,255,.06)" } },
+                        x: { ticks: { color: "#9ca3af" }, grid: { color: "rgba(255,255,255,.06)" } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+            document.getElementById("chartSection").style.display = "block";
+        })
+        .catch(err => {
+            document.getElementById("marketLoading").style.display = "none";
+            document.getElementById("marketError").style.display = "block";
+            document.getElementById("marketErrorMsg").textContent = "Network error: " + err.message;
+        });
+}
+
+document.addEventListener("DOMContentLoaded", fetchPrices);
+</script>
+{% endblock %}

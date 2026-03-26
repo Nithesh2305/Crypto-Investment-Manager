@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Crypto Investment Manager{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+    {% if current_user.is_authenticated %}
+    <nav id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="bi bi-currency-bitcoin"></i>
+            </div>
+            <span class="sidebar-brand">CryptoManager</span>
+        </div>
+        <ul class="sidebar-nav">
+            <li class="sidebar-section">MAIN</li>
+            <li>
+                <a href="{{ url_for('dashboard.dashboard') }}"
+                   class="{% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}">
+                    <i class="bi bi-grid-1x2-fill"></i> <span>Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('dashboard.live_market') }}"
+                   class="{% if request.endpoint == 'dashboard.live_market' %}active{% endif %}">
+                    <i class="bi bi-graph-up-arrow"></i> <span>Live Market</span>
+                </a>
+            </li>
+
+            <li class="sidebar-section">PORTFOLIO</li>
+            <li>
+                <a href="{{ url_for('dashboard.calculator') }}"
+                   class="{% if request.endpoint == 'dashboard.calculator' %}active{% endif %}">
+                    <i class="bi bi-calculator-fill"></i> <span>Investment Calculator</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('dashboard.simulator') }}"
+                   class="{% if request.endpoint == 'dashboard.simulator' %}active{% endif %}">
+                    <i class="bi bi-pie-chart-fill"></i> <span>Portfolio Simulator</span>
+                </a>
+            </li>
+
+            <li class="sidebar-section">ANALYSIS</li>
+            <li>
+                <a href="{{ url_for('analysis.forecast') }}"
+                   class="{% if request.endpoint == 'analysis.forecast' %}active{% endif %}">
+                    <i class="bi bi-graph-up"></i> <span>Price Forecast</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('analysis.risk_analysis') }}"
+                   class="{% if request.endpoint == 'analysis.risk_analysis' %}active{% endif %}">
+                    <i class="bi bi-shield-exclamation"></i> <span>Risk Analysis</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('analysis.reports') }}"
+                   class="{% if request.endpoint == 'analysis.reports' %}active{% endif %}">
+                    <i class="bi bi-file-earmark-bar-graph-fill"></i> <span>Reports</span>
+                </a>
+            </li>
+
+            <li class="sidebar-section">OTHER</li>
+            <li>
+                <a href="{{ url_for('dashboard.news') }}"
+                   class="{% if request.endpoint == 'dashboard.news' %}active{% endif %}">
+                    <i class="bi bi-newspaper"></i> <span>News</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('dashboard.settings') }}"
+                   class="{% if request.endpoint == 'dashboard.settings' %}active{% endif %}">
+                    <i class="bi bi-gear-fill"></i> <span>Settings</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('analysis.run_analysis') }}"
+                   class="{% if request.endpoint == 'analysis.run_analysis' %}active{% endif %}">
+                    <i class="bi bi-play-circle-fill"></i> <span>Run Analysis</span>
+                </a>
+            </li>
+
+            <li class="sidebar-divider"></li>
+            <li>
+                <a href="{{ url_for('auth.logout') }}" class="logout-link">
+                    <i class="bi bi-box-arrow-left"></i> <span>Logout</span>
+                </a>
+            </li>
+        </ul>
+        <div class="sidebar-footer">
+            <div class="user-avatar">{{ current_user.username[0]|upper }}</div>
+            <div class="user-info">
+                <span class="user-name">{{ current_user.username }}</span>
+                <span class="user-email">{{ current_user.email }}</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <nav class="topbar">
+            <div class="topbar-left">
+                <button class="sidebar-toggle d-md-none" onclick="document.getElementById('sidebar').classList.toggle('show')">
+                    <i class="bi bi-list"></i>
+                </button>
+                <h1 class="topbar-title">{% block page_title %}Dashboard{% endblock %}</h1>
+            </div>
+            <div class="topbar-right">
+                <a href="{{ url_for('dashboard.settings') }}" class="topbar-icon" title="Settings">
+                    <i class="bi bi-gear"></i>
+                </a>
+                <div class="topbar-user">
+                    <div class="user-avatar-sm">{{ current_user.username[0]|upper }}</div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="content-area">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="px-4 pt-3">
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <div class="px-4 py-4">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="auth-wrapper">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert" style="max-width: 440px; margin: 0 auto 1rem;">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+        {% block auth_content %}{% endblock %}
+    </div>
+    {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

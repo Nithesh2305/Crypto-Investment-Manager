@@ -1,0 +1,4 @@
+crypto_name,current_price,avg_daily_return,recent_avg_return,base_eta_pct,trend_eta_pct,adjusted_eta_pct,estimated_future_price,horizon_days
+Binancecoin,647.32,0.000504,-0.000902,1.5132,-2.7073,0.2471,648.92,30
+Bitcoin,71309.26,-0.000277,0.000352,-0.832,1.055,-0.2659,71119.64,30
+Ethereum,2168.26,0.000978,-0.001982,2.9328,-5.9448,0.2695,2174.1,30

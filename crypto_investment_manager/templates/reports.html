@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Reports – Crypto Investment Manager{% endblock %}
+{% block page_title %}Reports{% endblock %}
+
+{% block content %}
+<!-- Action bar -->
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <a href="{{ url_for('analysis.download_csv') }}" class="btn btn-accent">
+        <i class="bi bi-filetype-csv me-1"></i> Download CSV
+    </a>
+    <a href="{{ url_for('analysis.download_pdf') }}" class="btn btn-outline-light">
+        <i class="bi bi-filetype-pdf me-1"></i> Download PDF
+    </a>
+    <a href="{{ url_for('analysis.download_report') }}" class="btn btn-outline-light">
+        <i class="bi bi-download me-1"></i> Download TXT
+    </a>
+    <a href="{{ url_for('analysis.run_analysis') }}" class="btn btn-outline-secondary ms-auto">
+        <i class="bi bi-arrow-clockwise me-1"></i> Regenerate
+    </a>
+</div>
+
+<!-- Final report -->
+<div class="card glass-card mb-4">
+    <div class="card-header">
+        <i class="bi bi-file-earmark-bar-graph-fill me-2"></i>Final Report
+    </div>
+    <div class="card-body">
+        <pre class="report-pre mb-0">{{ report_text }}</pre>
+    </div>
+</div>
+
+<!-- Spreading rules report -->
+{% if spreading_text %}
+<div class="card glass-card">
+    <div class="card-header">
+        <i class="bi bi-shield-check me-2"></i>Spreading Rules Report
+    </div>
+    <div class="card-body">
+        <pre class="report-pre mb-0">{{ spreading_text }}</pre>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

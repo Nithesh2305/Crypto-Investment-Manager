@@ -1,0 +1,56 @@
+=================================================================
+CRYPTO INVESTMENT MANAGER – FINAL REPORT
+Generated: 2026-03-26 16:10:26
+=================================================================
+
+SECTION 1: RISK ANALYSIS
+-----------------------------------------------------------------
+Crypto          Risk       Trend        Adj. ETA %
+-----------------------------------------------------------------
+Binancecoin     MEDIUM     UPWARD           0.1152
+Bitcoin         MEDIUM     DOWNWARD        -2.2890
+Ethereum        MEDIUM     UPWARD           1.3349
+Binancecoin     MEDIUM     UPWARD          10.5835
+Bitcoin         MEDIUM     UPWARD           7.9993
+Ethereum        MEDIUM     UPWARD          13.9688
+Binancecoin     MEDIUM     UPWARD          10.5835
+Bitcoin         MEDIUM     UPWARD           7.9993
+Ethereum        MEDIUM     UPWARD          13.9688
+Binancecoin     MEDIUM     UPWARD          10.5835
+Bitcoin         MEDIUM     UPWARD           7.9993
+Ethereum        MEDIUM     UPWARD          13.9688
+Binancecoin     MEDIUM     UPWARD           5.9302
+Bitcoin         MEDIUM     UPWARD           6.0496
+Ethereum        MEDIUM     UPWARD           4.9617
+Binancecoin     MEDIUM     UPWARD           4.1520
+Bitcoin         MEDIUM     UPWARD           4.1088
+Ethereum        MEDIUM     UPWARD           5.1395
+Binancecoin     MEDIUM     UPWARD           4.1520
+Bitcoin         MEDIUM     UPWARD           4.1088
+Ethereum        MEDIUM     UPWARD           5.1395
+Binancecoin     MEDIUM     UPWARD           4.1520
+Bitcoin         MEDIUM     UPWARD           4.1088
+Ethereum        MEDIUM     UPWARD           5.1395
+Binancecoin     MEDIUM     UPWARD           0.6166
+Bitcoin         MEDIUM     UPWARD           0.6067
+Ethereum        MEDIUM     UPWARD           2.0858
+Binancecoin     MEDIUM     UPWARD           1.2751
+Bitcoin         MEDIUM     UPWARD           1.4723
+Ethereum        MEDIUM     UPWARD          11.8460
+Binancecoin     MEDIUM     UPWARD           0.2471
+Bitcoin         MEDIUM     DOWNWARD        -0.2659
+Ethereum        MEDIUM     UPWARD           0.2695
+
+SECTION 2: TOP 5 INVESTMENT MIXES
+-----------------------------------------------------------------
+Rank    BNB %  BTC %  ETH %   W.Return    W.ETA    Score
+-----------------------------------------------------------------
+1          40      0     60   0.000788   0.2605   0.2432
+2          50      0     50   0.000741   0.2583   0.2416
+3          60      0     40   0.000694   0.2561   0.2399
+4          30     10     60   0.000710   0.2092   0.1921
+5          40     10     50   0.000663   0.2070   0.1905
+
+=================================================================
+END OF REPORT
+=================================================================

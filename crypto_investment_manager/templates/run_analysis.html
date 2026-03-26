@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Run Analysis – Crypto Investment Manager{% endblock %}
+{% block page_title %}Run Analysis{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card glass-card mb-4">
+            <div class="card-header">
+                <i class="bi bi-play-circle-fill me-2"></i>Analysis Pipeline
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">
+                    Execute the full pipeline: Collect data from CoinGecko, process, compute returns & ETA,
+                    calculate investment mixes, run risk checks, generate reports, and send email alerts.
+                </p>
+                <form method="POST" id="analysisForm">
+                    <button type="submit" class="btn btn-accent btn-lg px-4" id="runBtn">
+                        <i class="bi bi-play-fill me-1"></i> Run Full Analysis
+                    </button>
+                </form>
+
+                <div id="loadingSpinner" class="text-center py-5" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <p class="text-muted mt-3">
+                        <i class="bi bi-hourglass-split me-1"></i>
+                        Running analysis pipeline... This may take a moment.
+                    </p>
+                    <div class="loading-bar mt-3">
+                        <div class="loading-bar-fill"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if output is not none %}
+        <div class="card glass-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-terminal-fill me-2"></i>Pipeline Output</span>
+                {% if success %}
+                    <span class="badge bg-success px-3 py-2"><i class="bi bi-check-circle me-1"></i>Success</span>
+                {% else %}
+                    <span class="badge bg-danger px-3 py-2"><i class="bi bi-x-circle me-1"></i>Failed</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <pre class="report-pre mb-0" style="max-height: 500px; overflow-y: auto;">{{ output }}</pre>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card glass-card mb-4">
+            <div class="card-header">
+                <i class="bi bi-list-check me-2"></i>Pipeline Steps
+            </div>
+            <div class="card-body">
+                <ol class="pipeline-steps mb-0">
+                    <li><i class="bi bi-cloud-download me-2 text-accent"></i>Data Collection (CoinGecko API)</li>
+                    <li><i class="bi bi-funnel me-2 text-accent"></i>Data Processing & Cleaning</li>
+                    <li><i class="bi bi-calculator me-2 text-accent"></i>Returns & ETA Calculation</li>
+                    <li><i class="bi bi-shuffle me-2 text-accent"></i>Investment Mix Calculator</li>
+                    <li><i class="bi bi-shield-check me-2 text-accent"></i>Risk Checker</li>
+                    <li><i class="bi bi-file-earmark-text me-2 text-accent"></i>Report Generator</li>
+                    <li><i class="bi bi-diagram-3 me-2 text-accent"></i>Spreading Rule Setter</li>
+                    <li><i class="bi bi-envelope me-2 text-accent"></i>Email Alert</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="card glass-card">
+            <div class="card-header">
+                <i class="bi bi-info-circle-fill me-2"></i>Note
+            </div>
+            <div class="card-body text-muted small">
+                The pipeline fetches live data from CoinGecko and requires an internet
+                connection. Results are automatically saved to the database and CSV files.
+                An email alert will be sent to <strong class="text-light">{{ current_user.email }}</strong>
+                if any high-risk or downward-trending cryptos are detected.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById("analysisForm").addEventListener("submit", function () {
+    document.getElementById("runBtn").disabled = true;
+    document.getElementById("runBtn").innerHTML =
+        '<span class="spinner-border spinner-border-sm me-2"></span>Running...';
+    document.getElementById("loadingSpinner").style.display = "block";
+});
+</script>
+{% endblock %}

@@ -1,0 +1,13 @@
+=================================================================
+  SPREADING RULES – INVESTMENT RECOMMENDATIONS
+  Generated: 2026-03-26 16:10:27
+=================================================================
+
+  1. Binancecoin trend UPWARD -> safe to increase allocation.
+  2. Bitcoin trend DOWNWARD -> avoid investing.
+  3. Ethereum trend UPWARD -> safe to increase allocation.
+  4. Suggested safer portfolio -> Binancecoin: 50.0%, Ethereum: 50.0%.
+
+=================================================================
+  END OF SPREADING RULES REPORT
+=================================================================

@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block title %}Risk Analysis – Crypto Investment Manager{% endblock %}
+{% block page_title %}Risk Analysis{% endblock %}
+
+{% block content %}
+<!-- Crypto Risk Cards -->
+<div class="row g-3 mb-4">
+    {% for row in risk_data %}
+    <div class="col-md-4">
+        <div class="card glass-card h-100">
+            <div class="card-body text-center py-4">
+                <h5 class="text-accent mb-3"><i class="bi bi-currency-bitcoin"></i> {{ row.crypto_name }}</h5>
+                <div class="mb-3">
+                    {% if row.risk_level == 'HIGH' %}
+                        <span class="badge-risk badge-risk-high">HIGH RISK</span>
+                    {% elif row.risk_level == 'MEDIUM' %}
+                        <span class="badge-risk badge-risk-medium">MEDIUM RISK</span>
+                    {% else %}
+                        <span class="badge-risk badge-risk-low">LOW RISK</span>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {% if row.trend == 'UPWARD' %}
+                        <span class="trend-indicator trend-up"><i class="bi bi-arrow-up-circle-fill"></i> UPWARD</span>
+                    {% else %}
+                        <span class="trend-indicator trend-down"><i class="bi bi-arrow-down-circle-fill"></i> DOWNWARD</span>
+                    {% endif %}
+                </div>
+                <p class="text-muted mb-0">Adjusted ETA: <strong class="text-light">{{ "%.4f"|format(row.adjusted_eta) }}%</strong></p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if not risk_data %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i>No risk data available. Please run the analysis pipeline first.
+</div>
+{% endif %}
+
+{% if risk_data %}
+<!-- Charts -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-8">
+        <div class="card glass-card">
+            <div class="card-header">
+                <i class="bi bi-bar-chart-fill me-2"></i>Risk Distribution Bar Chart
+            </div>
+            <div class="card-body">
+                <canvas id="riskDetailChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card glass-card h-100">
+            <div class="card-header">
+                <i class="bi bi-info-circle-fill me-2"></i>Risk Classification
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-3">
+                        <span class="badge-risk badge-risk-high me-2" style="font-size:.75rem;">HIGH</span>
+                        <span class="text-muted">Std deviation &gt; 5%. Very volatile.</span>
+                    </li>
+                    <li class="mb-3">
+                        <span class="badge-risk badge-risk-medium me-2" style="font-size:.75rem;">MEDIUM</span>
+                        <span class="text-muted">Std deviation 2–5%. Monitor closely.</span>
+                    </li>
+                    <li class="mb-3">
+                        <span class="badge-risk badge-risk-low me-2" style="font-size:.75rem;">LOW</span>
+                        <span class="text-muted">Std deviation &lt; 2%. Stable.</span>
+                    </li>
+                </ul>
+                <hr class="border-secondary">
+                <p class="small text-muted mb-0">
+                    <i class="bi bi-arrow-up-circle-fill text-success"></i> <strong>UPWARD</strong> = positive ETA trend<br>
+                    <i class="bi bi-arrow-down-circle-fill text-danger"></i> <strong>DOWNWARD</strong> = negative ETA trend
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Risk Heatmap -->
+<div class="card glass-card mb-4">
+    <div class="card-header">
+        <i class="bi bi-grid-3x3-gap-fill me-2"></i>Risk Heatmap
+    </div>
+    <div class="card-body">
+        <div class="risk-heatmap">
+            {% for row in risk_data %}
+            <div class="heatmap-cell
+                {% if row.risk_level == 'HIGH' %}heatmap-high
+                {% elif row.risk_level == 'MEDIUM' %}heatmap-medium
+                {% else %}heatmap-low{% endif %}">
+                <div class="heatmap-name">{{ row.crypto_name }}</div>
+                <div class="heatmap-level">{{ row.risk_level }}</div>
+                <div class="heatmap-trend">
+                    {% if row.trend == 'UPWARD' %}<i class="bi bi-arrow-up-short"></i>{% else %}<i class="bi bi-arrow-down-short"></i>{% endif %}
+                    {{ row.trend }}
+                </div>
+                <div class="heatmap-eta">ETA: {{ "%.2f"|format(row.adjusted_eta) }}%</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Table -->
+<div class="card glass-card">
+    <div class="card-header">
+        <i class="bi bi-table me-2"></i>Detailed Risk Results
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0">
+                <thead>
+                    <tr><th>#</th><th>Cryptocurrency</th><th>Risk Level</th><th>Trend</th><th>Adjusted ETA %</th><th>Timestamp</th></tr>
+                </thead>
+                <tbody>
+                    {% for row in risk_data %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td><i class="bi bi-currency-bitcoin text-accent me-1"></i>{{ row.crypto_name }}</td>
+                        <td>
+                            {% if row.risk_level == 'HIGH' %}<span class="badge bg-danger">HIGH</span>
+                            {% elif row.risk_level == 'MEDIUM' %}<span class="badge bg-warning text-dark">MEDIUM</span>
+                            {% else %}<span class="badge bg-success">LOW</span>{% endif %}
+                        </td>
+                        <td>
+                            {% if row.trend == 'UPWARD' %}<span class="text-success"><i class="bi bi-arrow-up-circle-fill"></i> UPWARD</span>
+                            {% else %}<span class="text-danger"><i class="bi bi-arrow-down-circle-fill"></i> DOWNWARD</span>{% endif %}
+                        </td>
+                        <td>{{ "%.4f"|format(row.adjusted_eta) }}</td>
+                        <td class="text-muted small">{{ row.timestamp }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if risk_data %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const data = {{ risk_data | tojson }};
+    const colorMap = { HIGH: "#ef4444", MEDIUM: "#f59e0b", LOW: "#10b981" };
+    new Chart(document.getElementById("riskDetailChart"), {
+        type: "bar",
+        data: {
+            labels: data.map(r => r.crypto_name),
+            datasets: [{
+                label: "Adjusted ETA %",
+                data: data.map(r => r.adjusted_eta),
+                backgroundColor: data.map(r => colorMap[r.risk_level] || "#6b7280"),
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { ticks: { color: "#9ca3af" }, grid: { color: "rgba(255,255,255,.06)" } },
+                x: { ticks: { color: "#9ca3af" }, grid: { color: "rgba(255,255,255,.06)" } }
+            },
+            plugins: { legend: { labels: { color: "#d1d5db" } } }
+        }
+    });
+});
+</script>
+{% endif %}
+{% endblock %}
